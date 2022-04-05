@@ -23,6 +23,10 @@ func (m *memberAccessRepoImpl) Insert(username, password, memberId string, joinD
 	return nil
 }
 
+func (m *memberAccessRepoImpl) Update(id string) {
+
+}
+
 func NewMemberAccessRepo(db *sqlx.DB) MemberAccessRepo {
 	return &memberAccessRepoImpl{
 		db: db,
