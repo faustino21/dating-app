@@ -1,0 +1,17 @@
+datingapp:
+  name: "Dating App"
+  api:
+    url: "localhost:8080"
+    log_level: "debug"
+    group:
+  db:
+    host: "localhost"
+    port: "5432"
+    user: "postgres"
+    password: "tinoganteng21"
+    name: "original_dating_app"
+  static:
+    uploads: ""
+
+
+    
