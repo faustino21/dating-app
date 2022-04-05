@@ -9,3 +9,9 @@ type MemberAccess struct {
 	Verification string
 	JoinDate     *time.Time
 }
+
+func NewMemberAccess(id, username, password, verification string, joinDate *time.Time) *MemberAccess {
+	return &MemberAccess{
+		id, username, password, verification, joinDate,
+	}
+}

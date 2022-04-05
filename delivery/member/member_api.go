@@ -1,48 +1,69 @@
 package member
 
 import (
-	"dating_app_last/delivery/common_response"
+	"dating_app_last/delivery/commonResponse"
+	"dating_app_last/delivery/httpRequest"
+	"dating_app_last/model"
 	"dating_app_last/usecase"
 	"dating_app_last/util"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 )
 
 type MemberApi struct {
-	common_response.BaseApi
-	memberSignUp usecase.MemberRegistration
+	commonResponse.BaseApi
+	memberSignUp     usecase.MemberRegistration
+	memberActivation usecase.MemberActivationUseCase
 }
 
 func (m *MemberApi) SignUpMember() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var memberReq MemberRequest
+		var memberReq httpRequest.MemberRequest
+		var value model.MemberAccess
 		err := m.ParseRequestBody(c, &memberReq)
 		if err != nil {
-			util.Log.Error().Msg("Parse Error")
+			m.ParsingError(c, err)
 			return
 		}
 		timeStamp := time.Now().Local()
 		uuid := util.GetUuid()
-		err = m.memberSignUp.MemberSignUp(memberReq.Email, memberReq.Password, uuid, &timeStamp, "N")
+		value, err = m.memberSignUp.MemberSignUp(memberReq.Email, memberReq.Password, uuid, &timeStamp, "N")
 		if err != nil {
-			c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", err))
-		}
-		c.String(http.StatusOK, fmt.Sprintf("Success"))
+			commonResponse.NewAppHttpResponse(c).FailedResp(http.StatusInternalServerError, commonResponse.NewFailedMessage(err.Error()))
+			return
 
-		c.
+		}
+		commonResponse.NewAppHttpResponse(c).SuccessResp(http.StatusOK, commonResponse.NewSuccessMessage("Sign Up Success", value))
 	}
 }
 
+func (m *MemberApi) ActivationMember() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var memberId httpRequest.MemberIdReq
+		err := m.ParseRequestBody(c, &memberId)
+		if err != nil {
+			m.ParsingError(c, err)
+			return
+		}
+		err = m.memberActivation.MemberActivation(memberId.MemberId)
+		if err != nil {
+			commonResponse.NewAppHttpResponse(c).FailedResp(http.StatusInternalServerError, commonResponse.NewFailedMessage(err.Error()))
+			return
+		}
+		commonResponse.NewAppHttpResponse(c).SuccessResp(http.StatusOK, commonResponse.NewSuccessMessage("Success", "Verified"))
+	}
 
+}
 
-func NewMemberApi(memberRoute *gin.RouterGroup, memberSignUp usecase.MemberRegistration) (*MemberApi, error) {
+func NewMemberApi(memberRoute *gin.RouterGroup, memberSignUp usecase.MemberRegistration, memberActivation usecase.MemberActivationUseCase) (*MemberApi, error) {
 	memberApi := MemberApi{
-		memberSignUp: memberSignUp,
+		memberSignUp:     memberSignUp,
+		memberActivation: memberActivation,
 	}
 
 	memberGroup := memberRoute.Group("/member")
 	memberGroup.POST("/signup", memberApi.SignUpMember())
+	memberGroup.POST("/verification", memberApi.ActivationMember())
 	return &memberApi, nil
 }

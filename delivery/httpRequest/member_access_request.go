@@ -1,4 +1,4 @@
-package member
+package httpRequest
 
 type MemberRequest struct {
 	Email    string `json:"email" binding:"required"`

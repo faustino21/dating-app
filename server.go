@@ -26,7 +26,7 @@ func (a *appServer) initHandler() {
 
 func (a *appServer) v1() {
 	datingGroup := a.routerEngine.Group("/dating")
-	member.NewMemberApi(datingGroup, a.cfg.UseCaseManager.MemberSignUpUseCase())
+	member.NewMemberApi(datingGroup, a.cfg.UseCaseManager.MemberSignUpUseCase(), a.cfg.UseCaseManager.MemberActivationUseCase())
 }
 
 func (a *appServer) Run() {
