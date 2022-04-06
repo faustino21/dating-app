@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"dating_app_last/model"
 	"dating_app_last/util"
 	"errors"
 	"github.com/jmoiron/sqlx"
@@ -10,10 +11,29 @@ import (
 type MemberAccessRepo interface {
 	Insert(username, password, memberId string, joinDate *time.Time, verification string) error
 	Update(id string) error
+	Login(username, password string) (*model.MemberAccess, error)
 }
 
 type memberAccessRepoImpl struct {
 	db *sqlx.DB
+}
+
+func (m *memberAccessRepoImpl) Login(username, password string) (*model.MemberAccess, error) {
+	var memberId, userName, userPassword, verification string
+	var joinDate *time.Time
+	err := m.db.QueryRow("SElECT * FROM member_access WHERE user_name = $1 AND user_password = $2 AND verification_status = $3",
+		username, password, "Y").Scan(&memberId, &userName, &userPassword, &joinDate, &verification)
+	if err != nil {
+		return nil, err
+	}
+	loginReq := new(model.MemberAccess)
+	loginReq.UserName = userName
+	loginReq.Verification = verification
+	loginReq.JoinDate = joinDate
+	loginReq.Password = userPassword
+	loginReq.MemberId = memberId
+
+	return loginReq, nil
 }
 
 func (m *memberAccessRepoImpl) Insert(username, password, memberId string, joinDate *time.Time, verification string) error {

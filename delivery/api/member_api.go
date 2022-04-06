@@ -1,4 +1,4 @@
-package member
+package api
 
 import (
 	"dating_app_last/delivery/commonResponse"
@@ -62,7 +62,7 @@ func NewMemberApi(memberRoute *gin.RouterGroup, memberSignUp usecase.MemberRegis
 		memberActivation: memberActivation,
 	}
 
-	memberGroup := memberRoute.Group("/member")
+	memberGroup := memberRoute.Group("/api")
 	memberGroup.POST("/signup", memberApi.SignUpMember())
 	memberGroup.POST("/verification", memberApi.ActivationMember())
 	return &memberApi, nil

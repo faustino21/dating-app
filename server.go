@@ -2,7 +2,7 @@ package main
 
 import (
 	"dating_app_last/config"
-	"dating_app_last/delivery/member"
+	"dating_app_last/delivery/api"
 	"dating_app_last/manager"
 	"dating_app_last/util"
 	"github.com/gin-gonic/gin"
@@ -26,7 +26,8 @@ func (a *appServer) initHandler() {
 
 func (a *appServer) v1() {
 	datingGroup := a.routerEngine.Group("/dating")
-	member.NewMemberApi(datingGroup, a.cfg.UseCaseManager.MemberSignUpUseCase(), a.cfg.UseCaseManager.MemberActivationUseCase())
+	api.NewAuthentication(datingGroup, a.cfg.UseCaseManager.MemberAuthentication())
+	api.NewMemberApi(datingGroup, a.cfg.UseCaseManager.MemberSignUpUseCase(), a.cfg.UseCaseManager.MemberActivationUseCase())
 }
 
 func (a *appServer) Run() {

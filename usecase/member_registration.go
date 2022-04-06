@@ -15,7 +15,7 @@ type memberRegistration struct {
 }
 
 func (m *memberRegistration) MemberSignUp(username, password, memberId string, joinDate *time.Time, verification string) (model.MemberAccess, error) {
-	newMember := model.NewMemberAccess(username, password, memberId, verification, joinDate)
+	newMember := model.NewMemberAccess(memberId, username, password, verification, joinDate)
 	err := m.repo.Insert(newMember.UserName, newMember.Password, newMember.MemberId, newMember.JoinDate, newMember.Verification)
 	if err != nil {
 		return *newMember, err

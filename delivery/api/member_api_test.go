@@ -1,4 +1,4 @@
-package member
+package api
 
 import (
 	"dating_app_last/model"
