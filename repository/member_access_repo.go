@@ -27,20 +27,20 @@ func (m *memberAccessRepoImpl) Insert(username, password, memberId string, joinD
 }
 
 func (m *memberAccessRepoImpl) Update(id string) error {
-	var member *string
+	var email *string
 	tx := m.db.MustBegin()
 	rowsAffected := tx.MustExec("UPDATE member_access SET verification_status = $1 WHERE member_id = $2", "Y", id)
-	rows, _ := rowsAffected.RowsAffected()
+	rows, err := rowsAffected.RowsAffected()
 	if rows == 0 {
-		util.Log.Error().Msg("Username not registered")
-		return errors.New("Username not registered")
+		util.Log.Error().Msg("Wrong Member Id")
+		return err
 	}
-	err := tx.Get(&member, "SELECT user_name FROM member_access WHERE member_id = $1", id)
+	err = tx.Get(&email, "SELECT user_name FROM member_access WHERE member_id = $1", id)
 	if err != nil {
-		util.Log.Error().Msg(err.Error())
+		util.Log.Error().Msg("Member not registered")
 		return errors.New("Member not registered")
 	}
-	tx.MustExec("INSERT INTO member_contact_information (contact_information_id, member_id, email) VALUES ($1, $2, $3)", util.GetUuid(), id, &member)
+	tx.MustExec("INSERT INTO member_contact_information (member_id, email,contact_information_id) VALUES ($1, $2, $3)", id, email, util.GetUuid())
 	err = tx.Commit()
 	if err != nil {
 		return err
