@@ -15,6 +15,7 @@ type MemberApi struct {
 	commonResponse.BaseApi
 	memberSignUp     usecase.MemberRegistration
 	memberActivation usecase.MemberActivationUseCase
+	getAllMember     usecase.ShowMemberRegistered
 }
 
 func (m *MemberApi) SignUpMember() gin.HandlerFunc {
@@ -56,14 +57,33 @@ func (m *MemberApi) ActivationMember() gin.HandlerFunc {
 
 }
 
-func NewMemberApi(memberRoute *gin.RouterGroup, memberSignUp usecase.MemberRegistration, memberActivation usecase.MemberActivationUseCase) (*MemberApi, error) {
+func (m *MemberApi) GetAllMember() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var page httpRequest.PageReq
+		err := m.ParseRequestBody(c, &page)
+		if err != nil {
+			m.ParsingError(c, err)
+			return
+		}
+		list, err := m.getAllMember.GetAllMember(page.Page)
+		if err != nil {
+			commonResponse.NewAppHttpResponse(c).FailedResp(http.StatusBadRequest, commonResponse.NewFailedMessage(err.Error()))
+			return
+		}
+		commonResponse.NewAppHttpResponse(c).SuccessResp(http.StatusOK, commonResponse.NewSuccessMessage("Success", list))
+	}
+}
+
+func NewMemberApi(memberRoute *gin.RouterGroup, memberSignUp usecase.MemberRegistration, memberActivation usecase.MemberActivationUseCase, getMember usecase.ShowMemberRegistered) (*MemberApi, error) {
 	memberApi := MemberApi{
 		memberSignUp:     memberSignUp,
 		memberActivation: memberActivation,
+		getAllMember:     getMember,
 	}
 
 	memberGroup := memberRoute.Group("/api")
 	memberGroup.POST("/signup", memberApi.SignUpMember())
 	memberGroup.POST("/verification", memberApi.ActivationMember())
+	memberGroup.GET("/allMember", memberApi.GetAllMember())
 	return &memberApi, nil
 }

@@ -12,6 +12,7 @@ type MemberAccessRepo interface {
 	Insert(username, password, memberId string, joinDate *time.Time, verification string) error
 	Update(id string) error
 	Login(username, password string) (*model.MemberAccess, error)
+	GetMember(page int) (*[]model.GetMemberResp, error)
 }
 
 type memberAccessRepoImpl struct {
@@ -24,7 +25,8 @@ func (m *memberAccessRepoImpl) Login(username, password string) (*model.MemberAc
 	err := m.db.QueryRow("SElECT * FROM member_access WHERE user_name = $1 AND user_password = $2 AND verification_status = $3",
 		username, password, "Y").Scan(&memberId, &userName, &userPassword, &joinDate, &verification)
 	if err != nil {
-		return nil, err
+		util.Log.Error().Msg("Unauthorized member")
+		return nil, errors.New("Unauthorized member")
 	}
 	loginReq := new(model.MemberAccess)
 	loginReq.UserName = userName
@@ -34,6 +36,16 @@ func (m *memberAccessRepoImpl) Login(username, password string) (*model.MemberAc
 	loginReq.MemberId = memberId
 
 	return loginReq, nil
+}
+
+func (m *memberAccessRepoImpl) GetMember(page int) (*[]model.GetMemberResp, error) {
+	var listMember []model.GetMemberResp
+	err := m.db.Select(&listMember, "SELECT user_name, join_date FROM member_access ORDER BY user_name ASC LIMIT 5 OFFSET $1", (5 * (page - 1)))
+	if err != nil {
+		util.Log.Error().Msg(err.Error())
+		return nil, errors.New("Get member error")
+	}
+	return &listMember, nil
 }
 
 func (m *memberAccessRepoImpl) Insert(username, password, memberId string, joinDate *time.Time, verification string) error {

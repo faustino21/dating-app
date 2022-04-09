@@ -3,6 +3,7 @@ package api
 import (
 	"dating_app_last/delivery/commonResponse"
 	"dating_app_last/delivery/httpRequest"
+	"dating_app_last/delivery/middleware"
 	"dating_app_last/model"
 	"dating_app_last/usecase"
 	"github.com/gin-gonic/gin"
@@ -29,6 +30,11 @@ func (a *AuthApi) AuthenticationMember() gin.HandlerFunc {
 			return
 		}
 		commonResponse.NewAppHttpResponse(c).SuccessResp(http.StatusOK, commonResponse.NewSuccessMessage("Authentication Success", member))
+		token, err := middleware.GenerateToken(member.UserName, member.JoinDate)
+		c.JSON(http.StatusOK, gin.H{
+			"token": token,
+		})
+
 	}
 }
 
